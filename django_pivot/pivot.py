@@ -29,6 +29,7 @@ def pivot(queryset, rows, column, data, aggregation=Sum, choices='auto', display
     column_values = get_column_values(queryset, column, choices)
 
     annotations = _get_annotations(column, column_values, data, aggregation, display_transform, default=default)
+
     for row in values:
         row_choices = get_field_choices(queryset, row)
         if row_choices:
@@ -47,8 +48,9 @@ def pivot(queryset, rows, column, data, aggregation=Sum, choices='auto', display
 
 
 def _get_annotations(column, column_values, data, aggregation, display_transform=lambda s: s, default=None):
+
     value = data if hasattr(data, 'resolve_expression') else F(data)
     return {
-        display_transform(display_value): Coalesce(aggregation(Case(When(Q(**{column: column_value}), then=value))), default)
+        display_transform(display_value): aggregation(column, column_value, display_value, value, default)
         for column_value, display_value in column_values
     }
